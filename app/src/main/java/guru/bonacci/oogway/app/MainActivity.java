@@ -28,7 +28,8 @@ public class MainActivity extends AppCompatActivity {
     RequestQueue requestQueue;
     TextToSpeech t1;
 
-    String url = "http://rest-service.guides.spring.io/greeting";
+    //IPv4 Address.
+    String url = "http://192.168.6.101:13579/hi/greeting";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
         requestQueue = Volley.newRequestQueue(this);
 
-        t1=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR) {
@@ -54,10 +55,10 @@ public class MainActivity extends AppCompatActivity {
         this.tvAnswer.setText("");
     }
 
-    private void setAnswer(String id, String content) {
-        this.tvAnswer.setText("\n\n\n\n\n" + id + " / " + content);
+    private void setAnswer(String saying, String author) {
+        this.tvAnswer.setText("\n\n\n\n\n" + saying + " " + author);
 
-        String toSpeak = "And those who were seen dancing were thought to be insane by those who could not hear the music.";
+        String toSpeak = saying;
         Toast.makeText(getApplicationContext(), toSpeak,Toast.LENGTH_SHORT).show();
         t1.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null);
     }
@@ -73,9 +74,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            String id = response.getString("id");
-                            String content = response.getString("content");
-                            setAnswer(id, content);
+                            String saying = response.getString("saying");
+                            String author = response.getString("author");
+                            setAnswer(saying, author);
                         } catch (JSONException e) {
                             // If there is an error then output this to the logs.
                             Log.e("Volley", "Invalid JSON Object.");
