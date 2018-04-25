@@ -14,18 +14,18 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:id="@+id/btn_get_repos"
+        android:id="@+id/btn_ask"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:onClick="getReposClicked" />
+        android:onClick="getAnswer" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btn_get_repos"
+        android:layout_below="@+id/btn_ask"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:id="@+id/tv_repo_list"
+        android:id="@+id/tv_answer"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:scrollbars="vertical"
