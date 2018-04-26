@@ -28,7 +28,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     //IPv4 Address.
-    private static final String url = "http://192.168.6.101:13579/hi/consult?q=hi&apikey=dear";
+    private static final String url = "http://192.168.6.101:13579/hi/consult?q=#q#&apikey=ppa";
     private static final String US = "this is us";
 
     private RequestQueue requestQueue;
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onInit(int status) {
                 if(status != TextToSpeech.ERROR) {
-                    t1.setLanguage(Locale.UK);
+                    t1.setLanguage(Locale.ENGLISH);
                 }
             }
         });
@@ -74,16 +74,18 @@ public class MainActivity extends AppCompatActivity {
         messagesView.setSelection(messagesView.getCount() - 1);
     }
 
-    private void getAnswer() {
+    private void getAnswer(String question) {
+        String ourUrl = url;
+        ourUrl = ourUrl.replace("#q#", question);
         JsonObjectRequest request = new JsonObjectRequest
-                (Request.Method.GET, url, (String)null, new Response.Listener<JSONObject>() {
+                (Request.Method.GET, ourUrl, (String)null, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
                             GemCarrier gem = new ObjectMapper().readValue(response.toString(), GemCarrier.class);
-                            final MemberData data = memberCache.getByName(gem.getAuthor());
-                            final Message message = new Message(gem.getSaying(), data, false);
+                            final MemberData member = memberCache.getByName(gem.getAuthor());
+                            final Message message = new Message(gem.getSaying(), member, false);
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -115,9 +117,9 @@ public class MainActivity extends AppCompatActivity {
 
             final MemberData ourData = memberCache.getByName(US);
             final Message message = new Message(messageString, ourData, true);
-            publish(message);
 
-            getAnswer();
+            publish(message);
+            getAnswer(message.getText());
         }
     }
 }
@@ -126,19 +128,9 @@ class MemberCache {
     private Map<String, MemberData> cache = new HashMap<>();
 
     public MemberData getByName(String name) {
-        cache.putIfAbsent(name, new MemberData(name, getRandomColor()));
+        cache.putIfAbsent(name, new MemberData(name, Randomizer.getRandomColor()));
         return cache.get(name);
     }
-
-    private String getRandomColor() {
-        Random r = new Random();
-        StringBuffer sb = new StringBuffer("#");
-        while(sb.length() < 7){
-            sb.append(Integer.toHexString(r.nextInt()));
-        }
-        return sb.toString().substring(0, 7);
-    }
-
 }
 
 class MemberData {
