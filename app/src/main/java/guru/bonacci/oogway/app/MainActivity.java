@@ -5,10 +5,8 @@ import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -21,13 +19,17 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnAsk;
-    private TextView tvAnswer;
+    //IPv4 Address.
+    private static final String url = "http://192.168.6.101:13579/hi/greeting";
+    private static final String US = "this is us";
+
     private RequestQueue requestQueue;
 
     private EditText editText;
@@ -35,26 +37,20 @@ public class MainActivity extends AppCompatActivity {
     private ListView messagesView;
     private TextToSpeech t1;
 
-    private MemberData ourData;
-
-    //IPv4 Address.
-    private String url = "http://192.168.6.101:13579/hi/greeting";
+    private MemberCache memberCache;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        this.btnAsk = (Button) findViewById(R.id.btn_ask);
-        this.tvAnswer = (TextView) findViewById(R.id.tv_answer);
-        this.editText = (EditText) findViewById(R.id.editText);
+        editText = (EditText) findViewById(R.id.editText);
 
         messageAdapter = new MessageAdapter(this);
         messagesView = (ListView) findViewById(R.id.messages_view);
         messagesView.setAdapter(messageAdapter);
 
-        ourData = new MemberData("This is us", getRandomColor());
-
+        memberCache = new MemberCache();
         requestQueue = Volley.newRequestQueue(this);
 
         t1 = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -85,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onResponse(JSONObject response) {
                         try {
                             String author = response.getString("author");
-                            final MemberData data = new MemberData(author, getRandomColor());
+                            final MemberData data = memberCache.getByName(author);
                             String saying = response.getString("saying");
                             final Message message = new Message(saying, data, false);
                             runOnUiThread(new Runnable() {
@@ -117,11 +113,21 @@ public class MainActivity extends AppCompatActivity {
         if (messageString.length() > 0) {
             editText.getText().clear();
 
+            final MemberData ourData = memberCache.getByName(US);
             final Message message = new Message(messageString, ourData, true);
             publish(message);
 
             getAnswer();
         }
+    }
+}
+
+class MemberCache {
+    private Map<String, MemberData> cache = new HashMap<>();
+
+    public MemberData getByName(String name) {
+        cache.putIfAbsent(name, new MemberData(name, getRandomColor()));
+        return cache.get(name);
     }
 
     private String getRandomColor() {
@@ -132,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return sb.toString().substring(0, 7);
     }
+
 }
 
 class MemberData {
