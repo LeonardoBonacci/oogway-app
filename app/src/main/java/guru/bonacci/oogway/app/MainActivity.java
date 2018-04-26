@@ -18,6 +18,7 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import com.fasterxml.jackson.databind.*;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -27,7 +28,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     //IPv4 Address.
-    private static final String url = "http://192.168.6.101:13579/hi/greeting";
+    private static final String url = "http://192.168.6.101:13579/hi/consult?q=hi&apikey=dear";
     private static final String US = "this is us";
 
     private RequestQueue requestQueue;
@@ -80,10 +81,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            String author = response.getString("author");
-                            final MemberData data = memberCache.getByName(author);
-                            String saying = response.getString("saying");
-                            final Message message = new Message(saying, data, false);
+                            GemCarrier gem = new ObjectMapper().readValue(response.toString(), GemCarrier.class);
+                            final MemberData data = memberCache.getByName(gem.getAuthor());
+                            final Message message = new Message(gem.getSaying(), data, false);
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                                     speak(message.getText());
                                 }
                             });
-                        } catch (JSONException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
